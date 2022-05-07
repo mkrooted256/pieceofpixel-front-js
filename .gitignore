@@ -1,0 +1,5 @@
+node_modules/
+static/bootstrap-5.1.3/
+static/zoom-by-ironex.min.js
+static/startbootstrap-*
+package-lock.json

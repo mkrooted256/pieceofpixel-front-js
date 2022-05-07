@@ -19,10 +19,16 @@ app.set('view engine', 'm');
 // ROUTES
 //
 
-app.get('/', function(req, res){
+app.get('/', function(req, res) {
+    res.render('index');
+})
 
-    rows = 20; 
-    cols = 20;
+app.get('/image', function(req, res){
+
+    let rows = 20; 
+    let cols = 20;
+
+    let width = `${Math.floor(100.0/cols)}%`;
 
     let data = { title: 'Markdown Example' };
     data.rows = [];
@@ -41,8 +47,9 @@ app.get('/', function(req, res){
         {id:3, owner: 1},
     ]
     data.image_data = JSON.stringify(imgs);
+    data.image_width = width;
 
-    res.render('index', data);
+    res.render('image', data);
 });
 
 
