@@ -1,0 +1,44 @@
+.themed-grid-col {
+  padding-top: .75rem;
+  padding-bottom: .75rem;
+  background-color: rgba(86, 61, 124, .15);
+  border: 1px solid rgba(86, 61, 124, .2);
+}
+
+.themed-container {
+  padding: .75rem;
+  margin-bottom: 1.5rem;
+  background-color: rgba(0, 123, 255, .15);
+  border: 1px solid rgba(0, 123, 255, .2);
+}
+
+html, body {
+  font-family: 'Noto Sans', sans-serif;
+}
+
+h1, h2 {
+  font-family: 'Montserrat', sans-serif;
+}
+
+.matrix {
+  border-spacing: 0;
+  padding: 0;
+  line-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 25px;
+}
+
+.matrix-row {
+  display: flex;
+  flex-direction: row;
+  padding: 0;
+  margin: 0;
+}
+
+.tile {
+  display: inline-block;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
