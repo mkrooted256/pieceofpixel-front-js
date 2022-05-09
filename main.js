@@ -26,6 +26,16 @@ const FONDY_TOKEN = process.env.FONDY_TOKEN;
 const WFP_TOKEN = process.env.WFP_TOKEN;
 const WFP_MERCHANT = process.env.WFP_MERCHANT;
 
+let privateKey;
+let certificate;
+if (!process.env.DEBUG) {
+    privateKey = fs.readFileSync('privkey.pem');
+    certificate = fs.readFileSync('fullchain.pem');
+}
+
+if (!WFP_TOKEN) throw Error("No WFP_TOKEN!");
+if (!WFP_MERCHANT) throw Error("No WFP_MERCHANT!");
+
 const TILE_PRICE = Number(process.env.TILE_PRICE) || 20;
 
 //
