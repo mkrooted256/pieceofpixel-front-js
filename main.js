@@ -1,5 +1,5 @@
 const escapeHtml = require('escape-html');
-const express = require('Express');
+const express = require('express');
 const fs = require('fs');
 const marked = require('marked');
 const path = require('path');
