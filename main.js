@@ -90,7 +90,7 @@ function generate_wfp_signature(data) {
     var hmac = forge.hmac.create();
     hmac.start('md5', WFP_TOKEN);
 
-    const sorted = Object.keys(obj).sort();
+    const sorted = Object.keys(data).sort();
     let first = true;
     for(let k of sorted) {
         if (!first) {
