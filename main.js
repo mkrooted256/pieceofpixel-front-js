@@ -6,7 +6,6 @@ const path = require('path');
 const https = require('https');
 const axios = require('axios').default;
 
-const app = express();
 const mustacheExpress = require('mustache-express');
 const morgan = require('morgan')
 
@@ -41,6 +40,12 @@ const TILE_PRICE = Number(process.env.TILE_PRICE) || 20;
 //
 // express config
 //
+if (!process.env.DEBUG) {
+    var credentials = {key: privateKey, cert: certificate};
+    var app = express.createServer(credentials);
+} else {
+    var app = express();
+}
 
 app.use(morgan('combined'));
 app.use(express.static('static'));
@@ -232,6 +237,8 @@ app.all('/fondy', function(req,res) {
 
 
 // MAIN
+
+
 
 PORT = process.env.PORT || 3000
 app.listen(PORT);
