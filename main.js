@@ -4,7 +4,7 @@ const fs = require('fs');
 const marked = require('marked');
 const path = require('path');
 const https = require('https');
-const fetch = require('node-fetch');
+const axios = require('axios').default;
 
 const app = express();
 const mustacheExpress = require('mustache-express');
@@ -13,6 +13,7 @@ const morgan = require('morgan')
 const forge = require('node-forge')
 const forge_sha1 = forge.md.sha1;
 
+let last_orders = {};
 
 function sha1(s) {
     let md = forge_sha1.create();
@@ -144,7 +145,7 @@ app.get('/image', function(req, res){
 });
 
 
-app.get('/checkout', function(req, res) {
+app.get('/checkout', async function(req, res) {
     console.log('checkout: ', req.body);
 
     let order_data = req.query.order_data;
@@ -169,17 +170,25 @@ app.get('/checkout', function(req, res) {
     }
     wfp_data.merchantSignature = generate_wfp_signature(wfp_data);
     
-    const response = await fetch('https://secure.wayforpay.com/pay?behavior=offline', {
+    const response = await axios({
+        url: 'https://secure.wayforpay.com/pay?behavior=offline',
         method: 'post',
-        body: JSON.stringify(wfp_data),
+        data: JSON.stringify(wfp_data),
         headers: {'Content-Type': 'application/json'}
     });
-    const wfp_response_data = await response.json();
+    const wfp_response_data = await response.data;
     
+    console.log("Got response from WFP: ", wfp_response_data);
     if (wfp_response_data.url) {
+        last_orders[new_order_id] = {
+            order_id: "A"+new_order_id,
+            order_data: order_data,
+            cost: money,
+            owner: req.query.owner
+        };
         res.redirect(wfp_response_data.url);
     } else {
-        res.render('playmentfailed');
+        res.render('paymentfailed');
     }
 });
 
@@ -192,14 +201,20 @@ app.get('/paymentfailed', function(req,res) {
     res.render('paymentfailed');
 })
 
-// FONDY BEGIN
+// PAYMENT RESULT
+
+app.all('/wfp', function(req,res) {
+    console.log("WFP: ", req.body);
+    res.sendStatus(200);
+});
 
 app.all('/fondy', function(req,res) {
     console.log("FONDY: ", req.body);
     res.sendStatus(200);
 });
 
-// FONDY END
+
+// MAIN
 
 PORT = process.env.PORT || 3000
 app.listen(PORT);
