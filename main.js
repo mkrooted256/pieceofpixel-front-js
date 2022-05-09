@@ -4,6 +4,7 @@ const fs = require('fs');
 const marked = require('marked');
 const path = require('path');
 const https = require('https');
+const http = require('http');
 const axios = require('axios').default;
 
 const mustacheExpress = require('mustache-express');
@@ -25,13 +26,6 @@ const FONDY_TOKEN = process.env.FONDY_TOKEN;
 const WFP_TOKEN = process.env.WFP_TOKEN;
 const WFP_MERCHANT = process.env.WFP_MERCHANT;
 
-let privateKey;
-let certificate;
-if (!process.env.DEBUG) {
-    privateKey = fs.readFileSync('privkey.pem');
-    certificate = fs.readFileSync('fullchain.pem');
-}
-
 if (!WFP_TOKEN) throw Error("No WFP_TOKEN!");
 if (!WFP_MERCHANT) throw Error("No WFP_MERCHANT!");
 
@@ -50,10 +44,20 @@ app.set('view engine', 'm');
 
 // FUNCTIONS
 
+cached_order_id = 1
+try {
+    cached_order_id = Number(String(fs.readFileSync('order_id.txt')).trim());
+} catch(e) {
+    console.log(e);
+}
+
+
 function next_order_id() {
     try {
-        fs.writeFileSync('order_id.txt', cached_order_id+1);        
-    } catch (error) { }
+        fs.writeFileSync('order_id.txt', String(cached_order_id+1), {flag: "w+"});        
+    } catch (error) {
+        console.log(error)
+    }
     cached_order_id = cached_order_id + 1;
     return cached_order_id;
 }
@@ -70,11 +74,6 @@ fondy_data.order_desc = "Внесок у благодійний збір гро�
 fondy_data.order_id = "ID0";
 fondy_data.response_url = `https://${DOMAIN}/thankyou`;
 fondy_data.server_callback_url = `https://${DOMAIN}/fondy`;
-
-cached_order_id = 1
-try {
-    cached_order_id = fs.readFileSync('order_id.txt').trim();
-} catch(e) { }
 
 function fondy_signature(order_id) {
     data = fondy_data;
@@ -237,8 +236,18 @@ app.all('/fondy', function(req,res) {
 
 PORT = process.env.PORT || 3000
 
-var credentials = {key: privateKey, cert: certificate};
-var server = https.createServer(credentials, app);
+
+let privateKey;
+let certificate;
+
+var server = http.createServer(app);
+if (!process.env.DEBUG) {
+    privateKey = fs.readFileSync('privkey.pem');
+    certificate = fs.readFileSync('fullchain.pem');
+    var credentials = {key: privateKey, cert: certificate};
+    server = https.createServer(credentials, app);
+}
+
 
 server.listen(PORT, function() {
     console.log(`Express started on port ${PORT}`);
