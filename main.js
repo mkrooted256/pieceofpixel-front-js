@@ -40,12 +40,7 @@ const TILE_PRICE = Number(process.env.TILE_PRICE) || 20;
 //
 // express config
 //
-if (!process.env.DEBUG) {
-    var credentials = {key: privateKey, cert: certificate};
-    var app = express.createServer(credentials);
-} else {
-    var app = express();
-}
+const app = express();
 
 app.use(morgan('combined'));
 app.use(express.static('static'));
@@ -241,5 +236,11 @@ app.all('/fondy', function(req,res) {
 
 
 PORT = process.env.PORT || 3000
-app.listen(PORT);
-console.log(`Express started on port ${PORT}`);
+
+var credentials = {key: privateKey, cert: certificate};
+var server = https.createServer(credentials, app);
+
+server.listen(PORT, function() {
+    console.log(`Express started on port ${PORT}`);
+})
+
