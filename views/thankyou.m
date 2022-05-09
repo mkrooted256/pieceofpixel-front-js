@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Piece of Pixel</title>
+    <title>Дякуємо❤ | Piece of Pixel</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css"
         integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
@@ -24,10 +24,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"
         integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
         crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script>   
-    var image_data = {{{ image_data }}};
-    </script>
     <script src="/image.js"></script>
     <style>
         .tile {
@@ -54,60 +50,14 @@
         </div>
     </nav>
 
-    <div class="container">
-        <ul>
-            <li>Клікаєш на шмат картинки - відкривається інформація про нього</li>
-            <ul>
-                <li>Якщо шматок відкритий, то там ховається ім'я його власника</li>
-                <li>Якщо шматок закритий - швиденько клікаєш "в кошик" і додаєш в кошик</li>
-            </ul>
-            <li>Коли вибрав потрібну кількість шматків та готовий задонатити - опускаєшся нижче та клікаєш "Купити"</li>
-        </ul>
-    </div>
-    <hr>
+    <div class="container" style="margin-top: 2rem;">
+        <h1>Дякуємо ❤</h1>
+        <h3>Адміни вже побігли міняти пару рядків в текстовому файлику на сервері, який в нас за базу даних</h3>
+        <p>За оновленнями слідкуйте на <a href="https://t.me/pieceofpixelstore">t.me/pieceofpixelstore</a></p>
 
-
+<div class="navbar navbar-default navbar-fixed-bottom">
     <div class="container">
-        <div class="matrix">
-            {{#rows}}
-            <div class="matrix-row">
-                {{#cols}}
-                <img style="max-width: {{image_width}}"
-                 tabindex="0" rel="popover" data-toggle="popover" class="tile" id="{{image_id}}" title="{{image_id}}"
-                    data-trigger="focus" data-placement="auto top" src="im-300.png">
-                {{/cols}}
-            </div>
-            {{/rows}}
-        </div>
-    </div>
-
-    <hr>
-    <div class="container">
-        <div class="container" id="checkout_form">
-            <form action="/checkout" method="GET">
-                <input name="ntiles" type="hidden" id="input_ntiles" value="0">
-                <input name="order_data" type="hidden" id="input_order_data" value="{}">
-                <div class="input-group">
-                    <div>Ім'я власника пікселів (не обов'язково справжнє)</div>
-                    <input name="owner_name" type="text" id="input_owner_name" value="Анонім" >
-                </div>
-                <div class="input-group">
-                    <div>Кіко донатимо? (UAH)</div>
-                    <input name="money" type="number" id="input_money" aria-label="Кіко?">
-                </div>
-                <button type="submit" id="checkout-btn" class="btn btn-lg btn-grad" >Купити обрані пікселі! ❤❤ 
-                    <i data-text="amount"></i>
-                    <i data-brand="visa"></i><i data-brand="mastercard"></i></button>
-            </form>
-        </div>
-        <div id="cart">
-            Ваш кошик порожній
-        </div>
-    </div>
-    <hr>
-    
-    <div class="container">
-        <footer class="d-flex flex-wrap justify-content-between align-items-center border-top">
+        <footer class="d-flex flex-wrap justify-content-between align-items-center border-top" style="margin-top: 2rem;">
             <div class="col-md-4 d-flex align-items-center asocial">
                 <span class="text-muted">© 2021, <a href="https://github.com/mkrooted256">@mkrooted256</a> feat. <a
                         href="https://www.instagram.com/duke_mort_pixel">Duke Mort</a> </span>
@@ -143,13 +93,28 @@
         </footer>
     </div>
     <div class="container">
-        <p class="ihatefrontend">Якщо ти знаєш як покращити сайт та хочеш цим зайнятися - пиши <a href="https://t.me/mkrooted">t.me/mkrooted</a>. <br> Врятуйте C++ розробника від вебдизайну!</p>
+        <p class="ihatefrontend">Якщо ти знаєш як покращити сайт та хочеш цим зайнятися - пиши <a href="https://t.me/mkrooted">t.me/mkrooted</a>. <br> Врятуйте C++ розробника від фронту!</p>
     </div>
+</div>
     <hr>
 
 
-<script src="https://unpkg.com/ipsp-js-sdk@latest/dist/checkout.min.js"></script>
-<script src="/zoom-by-ironex.min.js"></script>
+    <script src="https://pay.fondy.eu/static_common/v1/checkout/ipsp.js"></script>
+    <script>
+        var button = $ipsp.get('checkout-btn');
+        button.addField({
+            label: 'order_data',
+            name: 'order_data',
+            required: true,
+            readonly: true,
+            hidden: true,
+            value: '{"image_id": 0, "tiles": ["0_0", "10_10"]}'
+        }); 
+    </script>
+    <script>
+        var image_data = {{{ image_data }}};
+    </script>
+    <script src="/zoom-by-ironex.min.js"></script>
 </body>
 
 </html>

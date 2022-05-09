@@ -36,7 +36,7 @@
             <img src="pieceofpixel.jpg" width="150px" style="border-radius: 50%;">
           </a>
           <h1 class="display-1 text-bold">Piece of Pixel Store <img src="/ukraine.png" height="30" width="30"></h1>
-          <h5 class="text-gray-soft text-regular" id="quote">
+          <h5 class="text-gray-soft text-regular" id="quote" data-toggle="tooltip" data-placement="right" title="Якщо що, це - випадкове повідомлення. Перезавантажте сторінку щоб побачити більше">
             Мистетцтво, що підтримує країну
           </h5>
           <hr>
