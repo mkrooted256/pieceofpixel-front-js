@@ -24,7 +24,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"
         integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
         crossorigin="anonymous"></script>
-    <script src="/image.js"></script>
     <style>
         .tile {
             width: {{image_width}};
@@ -99,24 +98,6 @@
     </div>
 </div>
     <hr>
-
-
-    <script src="https://pay.fondy.eu/static_common/v1/checkout/ipsp.js"></script>
-    <script>
-        var button = $ipsp.get('checkout-btn');
-        button.addField({
-            label: 'order_data',
-            name: 'order_data',
-            required: true,
-            readonly: true,
-            hidden: true,
-            value: '{"image_id": 0, "tiles": ["0_0", "10_10"]}'
-        }); 
-    </script>
-    <script>
-        var image_data = {{{ image_data }}};
-    </script>
-    <script src="/zoom-by-ironex.min.js"></script>
 </body>
 
 </html>

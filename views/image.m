@@ -83,15 +83,13 @@
 
     <hr>
     <div class="container">
-        <div class="container" id="checkout_form">
+        <div class="container" id="checkout-form">
             <form action="/checkout" method="GET">
                 <input name="ntiles" type="hidden" id="input_ntiles" value="0">
                 <input name="order_data" type="hidden" id="input_order_data" value="{}">
-                <div class="input-group">
+                <div class="input-group" id="inputs">
                     <div>Ім'я власника пікселів (не обов'язково справжнє)</div>
                     <input name="owner_name" type="text" id="input_owner_name" value="Анонім" >
-                </div>
-                <div class="input-group">
                     <div>Кіко донатимо? (UAH)</div>
                     <input name="money" type="number" id="input_money" aria-label="Кіко?">
                 </div>

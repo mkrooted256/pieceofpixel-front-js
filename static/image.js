@@ -1,6 +1,8 @@
 var openedPopover = undefined;
 var cart = [];
 
+var checkoutform;
+
 function renderPopover() {
     // if (openedPopover) $(openedPopover).popover('hide');
     openedPopover = this;
@@ -36,12 +38,6 @@ function RemoveTileCart(id) {
         cart.splice(index, 1);
     }
     document.getElementById(id).classList.remove("tile_incart");
-    
-    var cartelem = document.getElementById('cart');
-    if (cart.length > 0)
-        cartelem.innerText = "Ваш кошик ("+cart.length+"): " + cart.join(", ");
-    else 
-        cartelem.innerText = "Ваш кошик порожній";
 }
 function tilePopupClick(id) {
     return function(){
@@ -53,12 +49,27 @@ function tilePopupClick(id) {
             } else {
                 RemoveTileCart(id);
             }
+            
+            var cartelem = document.getElementById('cart');
+            if (cart.length > 0) {
+                checkoutform.classList.remove('hidden');
+                cartelem.innerText = "Ваш кошик ("+cart.length+"): " + cart.join(", ");
+            }
+            else {
+                checkoutform.classList.add('hidden');
+                cartelem.innerText = "Ваш кошик порожній";
+            }
+            document.getElementById('input_ntiles').value = cart.length;
+            document.getElementById('input_order_data').value = JSON.stringify(cart);
             document.getElementById('input_money').value = 20 * cart.length;
         }
     }
 }
 
 $(function () {
+    checkoutform = document.getElementById('checkout-form');
+    checkoutform.classList.add('hidden');
+
     console.log("Hello!");
     let tiles = $('.tile');
     tiles.popover({

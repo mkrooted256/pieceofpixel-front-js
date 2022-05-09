@@ -87,21 +87,27 @@ function generate_fondy_url(req, order_id) {
 // WAYFORPAY payments
 
 function generate_wfp_signature(data) {
-    var hmac = forge.hmac.create();
+    let hmac = forge.hmac.create();
     hmac.start('md5', WFP_TOKEN);
 
-    const sorted = Object.keys(data).sort();
-    let first = true;
-    for(let k of sorted) {
-        if (!first) {
-            hmac.update(';');
-        } else {
-            first = false;
-        }
-        hmac.update(data[k]);
-    }
+    console.log("data to sign:", data);
+
     
-    return hmac.digest().toHex();
+    hmac.update(data.merchantAccount + ';');
+    hmac.update(data.merchantDomainName + ';');
+    hmac.update(data.orderReference + ';');
+    hmac.update(data.orderDate + ';');
+    hmac.update(data.amount + ';');
+    hmac.update(data.currency + ';');
+    hmac.update(data.productName + ';');
+    hmac.update(data.productCount + ';');
+    hmac.update(data.productPrice);
+    
+    let sign = hmac.digest().toHex();
+
+    console.log(sign)
+
+    return sign;
 }
 
 
@@ -164,9 +170,9 @@ app.get('/checkout', async function(req, res) {
         orderDate: Date.now(),
         amount: `${money}.00`,
         currency: "UAH",
-        "productName[]": "Pile of pixels",
-        "productPrice[]": `${TILE_PRICE}.00`,
-        "productCount[]": Ntiles,
+        "productName": "Pile of pixels",
+        "productPrice": `${TILE_PRICE}.00`,
+        "productCount": Ntiles,
     }
     wfp_data.merchantSignature = generate_wfp_signature(wfp_data);
     
