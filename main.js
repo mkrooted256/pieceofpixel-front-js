@@ -24,6 +24,7 @@ function sha1(s) {
 const DOMAIN = process.env.DOMAIN || "pieceofpixel.store";
 const FONDY_TOKEN = process.env.FONDY_TOKEN;
 const WFP_TOKEN = process.env.WFP_TOKEN;
+const WFP_MERCHANT = process.env.WFP_MERCHANT;
 
 const TILE_PRICE = Number(process.env.TILE_PRICE) || 20;
 
@@ -160,7 +161,7 @@ app.get('/checkout', async function(req, res) {
     let new_order_id = next_order_id();
 
     let wfp_data = {
-        merchantAccount: "pieceofpixel_store",
+        merchantAccount: WFP_MERCHANT, 
         merchantDomainName: DOMAIN,
         merchantTransactionType: "SALE",
         language: "AUTO",
