@@ -287,9 +287,14 @@ app.post('/wfp', function(req,res) {
         res.sendStatus(400);
 	    return;
     }
+<<<<<<< HEAD
     let wfp_data;
     try {
         wfp_data = JSON.parse(keys[0]);
+=======
+    try {
+        let wfp_data = JSON.parse(keys[0]);
+>>>>>>> 1937e89f684636f20030da73e1ef6f09aa21b516
         console.log("WFP: ", wfp_data);
     } catch (e) {
         console.log("Failed to parse wfp_data");
