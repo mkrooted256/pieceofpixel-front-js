@@ -21,7 +21,8 @@ const JSONdb = require('simple-json-db');
 console.log("Setting up the database...")
 const TilesDB = new JSONdb('image1.json', {jsonSpaces: 2, syncOnWrite: false}); 
 const MiscDB = new JSONdb('misc.json', {jsonSpaces: 2});
-const OrdersDB = new JSONdb('orders.json', {jsonSpaces: 2});
+const ActiveOrdersDB = new JSONdb('orders.json', {jsonSpaces: 2});
+const PastOrdersDB = new JSONdb('orders_history.json', {jsonSpaces: 2});
 
 if (!MiscDB.has('orderId'))
     MiscDB.set('orderId', 0);
@@ -58,15 +59,16 @@ function free_tiles(tile_ids, owner) {
 }
 
 function place_order(order_ref, order) {
-    OrdersDB.set(order_ref, order)
+    ActiveOrdersDB.set(order_ref, order)
     reserve_tiles(order.cart, order.owner)
 }
 function confirm_order(order_ref, order) {
-    OrdersDB.delete(order_ref);
+    ActiveOrdersDB.delete(order_ref);
+    PastOrdersDB.set(order_ref, order);
     chown_tiles(order.cart, order.owner);
 }
 function reset_order(order_ref, order) {
-    OrdersDB.delete(order_ref);
+    ActiveOrdersDB.delete(order_ref);
     free_tiles(order.cart, order.owner);
 }
 
@@ -92,6 +94,7 @@ app.use(morgan('combined'));
 app.use(express.static('static'));
 
 app.use(express.json());
+app.use(express.urlencoded({extended: true}));
 
 app.engine('m', mustacheExpress());
 app.set('view engine', 'm');
@@ -125,7 +128,7 @@ function generate_wfp_request_signature(data) {
     return sign;
 }
 
-function generate_wfp_result_signature(data) {
+function check_signature_from_wfp(data) {
     let hmac = forge.hmac.create();
     hmac.start('md5', WFP_TOKEN);
 
@@ -137,6 +140,19 @@ function generate_wfp_result_signature(data) {
     hmac.update(data.cardPan + ';');
     hmac.update(data.transactionStatus + ';');
     hmac.update(data.reasonCode + '');
+    
+    let sign = hmac.digest().toHex();
+
+    return sign;
+}
+
+function generate_wfp_result_signature(data) {
+    let hmac = forge.hmac.create();
+    hmac.start('md5', WFP_TOKEN);
+
+    hmac.update(data.orderReference + ';');
+    hmac.update(data.status + ';');
+    hmac.update(data.time + '');
     
     let sign = hmac.digest().toHex();
 
@@ -254,36 +270,50 @@ app.all('/paymentfailed', function(req,res) {
 
 // PAYMENT RESULT
 
+function make_wfp_response(order_ref, status='accept', time=Date.now()) {
+    let data = {
+        orderReference: order_ref,
+        status: status,
+        time: time
+    }
+    data.signature = generate_wfp_result_signature(data);
+    return data;
+}
+
 app.post('/wfp', function(req,res) {
     console.log("WFP: ", req.body);
-    res.sendStatus(200);
 
     let wfp_data = req.body
 
     if (!wfp_data.merchantSignature) {
         console.error("No signature. Dismissing.");
+        res.sendStatus(400);
         return;
     }
 
-    let signature = generate_wfp_result_signature(wfp_data);
+    let signature = check_signature_from_wfp(wfp_data);
     if (signature != wfp_data.merchantSignature) {
         console.error("Invalid signature. Dismissing.");
+        res.sendStatus(400);
         return;
     }
 
-    let order = OrdersDB.get(wfp_data.orderReference);
+    let order = ActiveOrdersDB.get(wfp_data.orderReference);
     if (!order) {
         console.error("Order not found"); 
+        res.sendStatus(400);
         return;
     } 
     if (wfp_data.reasonCode != 1100) {
         console.error("something gone wrong with payment. resetting order.");
         reset_order(wfp_data.orderReference, order);
+        res.json(make_wfp_response(wfp_data.orderReference));
         return;
     }
 
     console.log("order confirmed!");
     confirm_order(wfp_data.orderReference, order);
+    res.json(make_wfp_response(wfp_data.orderReference));
 });
 
 app.all('/fondy', function(req,res) {
