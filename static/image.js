@@ -7,19 +7,16 @@ function renderPopover() {
     // if (openedPopover) $(openedPopover).popover('hide');
     openedPopover = this;
     var id = this.id;
+    
+    return '<div id="popupcontent_'+id+'"></div>'; 
 
-    var ans = "Yeeeah!";
+    var ans = "";
 
     var image_info = image_data[id];
     if (image_info.bought) {
         ans = "Owner: <span class=\"tile_owner\">" + image_info.owner + "</span>";
     } else {
-        var index = cart.indexOf(id);
-        if (index === -1) {
-            ans = "<a id=\"cartbtn_"+id+"\" role=\"button\" class=\"btn btn-success\">В кошик</a>";
-        } else {
-            ans = "<a id=\"cartbtn_"+id+"\" role=\"button\" class=\"btn btn-primary\">З кошика</a>";
-        }
+
     }
     console.log(id, 'popup: ', ans);
     return ans;
@@ -42,7 +39,7 @@ function RemoveTileCart(id) {
 function tilePopupClick(id) {
     return function(){
         var image_info = image_data[id];
-        if (!image_info.bought) {
+        if (image_info.status != 'bought') {
             var index = cart.indexOf(id);
             if (index === -1) {
                 AddTileCart(id);
@@ -60,8 +57,19 @@ function tilePopupClick(id) {
                 cartelem.innerText = "Ваш кошик порожній";
             }
             document.getElementById('input_ntiles').value = cart.length;
-            document.getElementById('input_order_data').value = JSON.stringify(cart);
+            document.getElementById('input_order_cart').value = JSON.stringify(cart);
             document.getElementById('input_money').value = 20 * cart.length;
+        }
+        var content = document.getElementById('popupcontent_'+id);
+        if (image_data[id].status != 'free') {
+            content.innerHTML = "Owner: <span class=\"tile_owner\">" + image_info.owner + "</span>";
+        } else {
+            var index = cart.indexOf(id);
+            if (index === -1) {
+                content.innerHTML = "<button id=\"cartbtn_"+id+"\" role=\"button\" class=\"btn btn-success\" onclick=\"tilePopupClick('"+id+"')()\">В кошик</a>";
+            } else {
+                content.innerHTML = "<button id=\"cartbtn_"+id+"\" role=\"button\" class=\"btn btn-primary\" onclick=\"tilePopupClick('"+id+"')()\">З кошика</a>";
+            }
         }
     }
 }
@@ -76,7 +84,28 @@ $(function () {
         html: true,
         content: renderPopover
     }).on('inserted.bs.popover', function(){
-        try {document.getElementById('cartbtn_'+this.id).onclick = tilePopupClick(this.id); } catch(e) {};
+        openedPopover = this.id;
+        console.log('inserting onclick');
+        var id = this.id;
+        var content = document.getElementById('popupcontent_'+id);
+        if (image_data[id].status != 'free') {
+            content.innerHTML = "Owner: <span class=\"tile_owner\">" + image_info.owner + "</span>";
+        } else {
+            var index = cart.indexOf(id);
+            if (index === -1) {
+                content.innerHTML = "<button id=\"cartbtn_"+id+"\" role=\"button\" class=\"btn btn-success\" onclick=\"tilePopupClick('"+id+"')()\">В кошик</a>";
+            } else {
+                content.innerHTML = "<button id=\"cartbtn_"+id+"\" role=\"button\" class=\"btn btn-primary\" onclick=\"tilePopupClick('"+id+"')()\">З кошика</a>";
+            }
+        }
+        content.parentNode.parentNode.addEventListener('mouseleave', function() {
+            console.log('mouseleave');
+            $(this).popover('hide');
+        });
+        // try {
+        //     $('#cartbtn_'+this.id).click(tilePopupClick(this.id)); 
+        //     console.log('inserting done. this:',this);
+        // } catch(e) { console.log(e) };
     });
     
     for (var i in image_data) {

@@ -31,7 +31,7 @@
     <script src="/image.js"></script>
     <style>
         .tile {
-            width: {{image_width}};
+            max-width: {{image_width}};
         }
     </style>
 </head>
@@ -72,9 +72,9 @@
             {{#rows}}
             <div class="matrix-row">
                 {{#cols}}
-                <img style="max-width: {{image_width}}"
+                <img
                  tabindex="0" rel="popover" data-toggle="popover" class="tile" id="{{image_id}}" title="{{image_id}}"
-                    data-trigger="focus" data-placement="auto top" src="im-300.png">
+                    data-trigger="click" data-placement="auto top" src="im-300.png">
                 {{/cols}}
             </div>
             {{/rows}}
@@ -86,9 +86,10 @@
         <div class="container" id="checkout-form">
             <form action="/checkout" method="GET">
                 <input name="ntiles" type="hidden" id="input_ntiles" value="0">
-                <input name="order_data" type="hidden" id="input_order_data" value="{}">
+                <input name="order_cart" type="hidden" id="input_order_cart" value="[]">
                 <div class="input-group" id="inputs">
                     <div>Ім'я власника пікселів (не обов'язково справжнє)</div>
+                    <div style="color: #ccc; font-size: small;">Всі символи окрім <em>йцукенгшщзхїфівапролджєячсмитьбю.a-zA-Z0-9_</em> та пробіла будуть видалені</div>
                     <input name="owner_name" type="text" id="input_owner_name" value="Анонім" >
                     <div>Кіко донатимо? (UAH)</div>
                     <input name="money" type="number" id="input_money" aria-label="Кіко?">

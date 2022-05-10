@@ -13,13 +13,65 @@ const morgan = require('morgan')
 const forge = require('node-forge')
 const forge_sha1 = forge.md.sha1;
 
-let last_orders = {};
+const JSONdb = require('simple-json-db');
 
-function sha1(s) {
-    let md = forge_sha1.create();
-    md.update(s);
-    return md.digest().toHex();
+
+// DATABASES
+
+console.log("Setting up the database...")
+const TilesDB = new JSONdb('image1.json', {jsonSpaces: 2, syncOnWrite: false}); 
+const MiscDB = new JSONdb('misc.json', {jsonSpaces: 2});
+const OrdersDB = new JSONdb('orders.json', {jsonSpaces: 2});
+
+if (!MiscDB.has('orderId'))
+    MiscDB.set('orderId', 0);
+
+function reserve_tiles(tile_ids, owner) {
+    let all_tiles = TilesDB.JSON();
+    tile_ids.forEach(tile_id => {
+        if (all_tiles[tile_id].status == 'free') {
+            all_tiles[tile_id].status = 'reserved';
+            all_tiles[tile_id].owner = owner;
+        }
+    });
+    TilesDB.JSON(all_tiles);
 }
+function chown_tiles(tile_ids, new_owner) {
+    let all_tiles = TilesDB.JSON();
+    tile_ids.forEach(tile_id => {
+        if (all_tiles[tile_id].owner == new_owner) {
+            all_tiles[tile_id].status = 'bought';
+        }
+    });
+    TilesDB.JSON(all_tiles);
+    TilesDB.sync();
+}
+function free_tiles(tile_ids, owner) {
+    let all_tiles = TilesDB.JSON();
+    tile_ids.forEach(tile_id => {
+        if (all_tiles[tile_id].status == 'reserved' && (owner == undefined || all_tiles[tile_id].owner == owner)) {
+            all_tiles[tile_id].status = 'free';
+            all_tiles[tile_id].owner = '';
+        }
+    });
+    TilesDB.JSON(all_tiles);
+}
+
+function place_order(order_ref, order) {
+    OrdersDB.set(order_ref, order)
+    reserve_tiles(order.cart, order.owner)
+}
+function confirm_order(order_ref, order) {
+    OrdersDB.delete(order_ref);
+    chown_tiles(order.cart, order.owner);
+}
+function reset_order(order_ref, order) {
+    OrdersDB.delete(order_ref);
+    free_tiles(order.cart, order.owner);
+}
+
+
+// CONFIG
 
 const DOMAIN = process.env.DOMAIN || "pieceofpixel.store";
 const FONDY_TOKEN = process.env.FONDY_TOKEN;
@@ -44,65 +96,18 @@ app.set('view engine', 'm');
 
 // FUNCTIONS
 
-cached_order_id = 1
-try {
-    cached_order_id = Number(String(fs.readFileSync('order_id.txt')).trim());
-} catch(e) {
-    console.log(e);
-}
-
-
 function next_order_id() {
-    try {
-        fs.writeFileSync('order_id.txt', String(cached_order_id+1), {flag: "w+"});        
-    } catch (error) {
-        console.log(error)
-    }
-    cached_order_id = cached_order_id + 1;
-    return cached_order_id;
-}
-
-// FONDY payment
-fondy_token = FONDY_TOKEN;
-
-fondy_data = {}
-fondy_data.token = fondy_token;
-fondy_data.amount = 2000;
-fondy_data.currency = "UAH";
-fondy_data.merchant_id = 1504148;
-fondy_data.order_desc = "Внесок у благодійний збір грошей";
-fondy_data.order_id = "ID0";
-fondy_data.response_url = `https://${DOMAIN}/thankyou`;
-fondy_data.server_callback_url = `https://${DOMAIN}/fondy`;
-
-function fondy_signature(order_id) {
-    data = fondy_data;
-    data.order_id = order_id;
-    console.log(data);
-    return sha1(data.values().join("|"));
-}
-
-function generate_fondy_url(req, order_id) {
-    
-    let signature = fondy_signature(order_id);
-    let url = "https://pay.fondy.eu/api/checkout/redirect";
-    for (k in fondy_data.keys()) {
-        url += `${k}=${fondy_data[k]}&`;
-    }
-    url += `signature=${signature}&`;
-    url += `merchant_data=${order_data}`;
-    url = encodeURI(url);
+    let new_order_id = MiscDB.get('orderId') + 1;
+    MiscDB.set('orderId', new_order_id);
+    return new_order_id;
 }
 
 // WAYFORPAY payments
 
-function generate_wfp_signature(data) {
+function generate_wfp_request_signature(data) {
     let hmac = forge.hmac.create();
     hmac.start('md5', WFP_TOKEN);
 
-    console.log("data to sign:", data);
-
-    
     hmac.update(data.merchantAccount + ';');
     hmac.update(data.merchantDomainName + ';');
     hmac.update(data.orderReference + ';');
@@ -115,7 +120,23 @@ function generate_wfp_signature(data) {
     
     let sign = hmac.digest().toHex();
 
-    console.log(sign)
+    return sign;
+}
+
+function generate_wfp_result_signature(data) {
+    let hmac = forge.hmac.create();
+    hmac.start('md5', WFP_TOKEN);
+
+    hmac.update(data.merchantAccount + ';');
+    hmac.update(data.orderReference + ';');
+    hmac.update(data.amount + ';');
+    hmac.update(data.currency + ';');
+    hmac.update(data.authCode + ';');
+    hmac.update(data.cardPan + ';');
+    hmac.update(data.transactionStatus + ';');
+    hmac.update(data.reasonCode );
+    
+    let sign = hmac.digest().toHex();
 
     return sign;
 }
@@ -131,25 +152,21 @@ app.get('/', function(req, res) {
 
 app.get('/image', function(req, res){
 
-    let rows = 20; 
-    let cols = 20;
+    let rows = TilesDB.get('rows'); 
+    let cols = TilesDB.get('cols');
 
     let width = `${Math.floor(100.0/cols)}%`;
 
-    let data = { title: 'Markdown Example' };
+    let data = {};
     data.rows = [];
 
     let imgs = {};
-    for (let i = 0; i < rows; i++) {
+    for (let i = 1; i <= rows; i++) {
         let row = [];
-        for (let j = 0; j < cols; j++) {
+        for (let j = 1; j <= cols; j++) {
             let tile_id = `tile_${i}_${j}`;
             row.push({image_id: tile_id});
-            let bought = Math.random() > 0.8;
-            imgs[tile_id] = {
-                bought: bought,
-                owner: bought ? "mkrooted" : ""
-            }
+            imgs[tile_id] = TilesDB.get(tile_id);
         }
         data.rows.push({cols: row});
     }
@@ -164,9 +181,20 @@ app.get('/image', function(req, res){
 app.get('/checkout', async function(req, res) {
     console.log('checkout: ', req.body);
 
-    let order_data = req.query.order_data;
-    let Ntiles = req.query.ntiles;
-    let money = req.query.money;
+    let order_cart;
+    try {
+        order_cart = JSON.parse(req.query.order_cart);
+        if (!Array.isArray(order_cart) || order_cart.some((elem) => {return typeof elem !== 'string'})) {
+            throw "";
+        }
+    } catch(e) {
+        // parse failed
+        console.error("order_cart parse failed:", e)
+        res.redirect('/paymentfailed');
+        return;
+    }
+    // let Ntiles = req.query.ntiles ;
+    let money = Number(req.query.money);
     let new_order_id = next_order_id();
 
     let wfp_data = {
@@ -182,9 +210,9 @@ app.get('/checkout', async function(req, res) {
         currency: "UAH",
         "productName": "Pile of pixels",
         "productPrice": `${TILE_PRICE}.00`,
-        "productCount": Ntiles,
+        "productCount": order_cart.length,
     }
-    wfp_data.merchantSignature = generate_wfp_signature(wfp_data);
+    wfp_data.merchantSignature = generate_wfp_request_signature(wfp_data);
     
     const response = await axios({
         url: 'https://secure.wayforpay.com/pay?behavior=offline',
@@ -194,17 +222,22 @@ app.get('/checkout', async function(req, res) {
     });
     const wfp_response_data = await response.data;
     
+    let owner;
+    if (req.query.owner_name) 
+        owner = req.query.owner_name.replace(/[^ЙЦУКЕНГШЩЗХЇФІВАПРОЛДЖЄЯЧСМИТЬБЮґҐйцукенгшщзхїфівапролджєячсмитьбю\.a-zA-Z0-9_\ ]/, '').trim();
+    else 
+        owner = "Анонім";
+
     console.log("Got response from WFP: ", wfp_response_data);
     if (wfp_response_data.url) {
-        last_orders[new_order_id] = {
-            order_id: "A"+new_order_id,
-            order_data: order_data,
+        place_order("A"+new_order_id, {
+            cart: order_cart,
             cost: money,
-            owner: req.query.owner
-        };
+            owner: owner
+        });
         res.redirect(wfp_response_data.url);
     } else {
-        res.render('paymentfailed');
+        res.redirect('/paymentfailed');
     }
 });
 
@@ -222,6 +255,28 @@ app.get('/paymentfailed', function(req,res) {
 app.all('/wfp', function(req,res) {
     console.log("WFP: ", req.body);
     res.sendStatus(200);
+
+    let wfp_data = req.body
+    let signature = generate_wfp_result_signature(wfp_data);
+    if (signature != wfp_data.merchantSignature) {
+        console.error("Invalid signature. Dismissing.");
+        res.sendStatus(200);
+        return;
+    }
+
+    let order = OrdersDB.get(wfp_data.orderReference);
+    if (!order) {
+        console.error("Order not found"); 
+        return;
+    } 
+    if (wfp_data.reasonCode != 1100) {
+        console.error("something gone wrong with payment. resetting order.");
+        reset_order(wfp_data.orderReference, order);
+        return;
+    }
+
+    console.log("order confirmed!");
+    confirm_order(wfp_data.orderReference, order);
 });
 
 app.all('/fondy', function(req,res) {
