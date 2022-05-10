@@ -25,11 +25,6 @@
         integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd"
         crossorigin="anonymous"></script>
     <script src="/image.js"></script>
-    <style>
-        .tile {
-            width: {{image_width}};
-        }
-    </style>
 </head>
 
 <body>

@@ -83,8 +83,8 @@
 
     <hr>
     <div class="container">
+        <form action="/checkout" method="GET">
         <div class="container" id="checkout-form">
-            <form action="/checkout" method="GET">
                 <input name="ntiles" type="hidden" id="input_ntiles" value="0">
                 <input name="order_cart" type="hidden" id="input_order_cart" value="[]">
                 <div class="input-group" id="inputs">
@@ -94,13 +94,31 @@
                     <div>Кіко донатимо? (UAH)</div>
                     <input name="money" type="number" id="input_money" aria-label="Кіко?">
                 </div>
-                <button type="submit" id="checkout-btn" class="btn btn-lg btn-grad" >Купити обрані пікселі! ❤❤ 
-                    <i data-text="amount"></i>
-                    <i data-brand="visa"></i><i data-brand="mastercard"></i></button>
-            </form>
+            <hr>
+            <div>
+                <h3>Варіанти донату</h3>
+                <ul>
+                    <li>Через WayForPay (натисніть цю кнопку)
+                        <button type="submit" id="checkout-btn" class="btn btn-grad" >Донат через платіжний сервіс! ❤❤ 
+                            <i data-text="amount"></i>
+                            <i data-brand="visa"></i><i data-brand="mastercard"></i></button></li>
+                    <li>
+                        Переводом на картку <code>4441 1144 5003 3624</code>
+                        <ol>
+                            <li>У призначенні вкажіть бажані номери шматків картинки (вказані біля кнопки "в кошик") та бажане ім'я власника. <br> Інакше віддамо вам випадкові, а власник буде "Анонім" :)</li>
+                            <li>Надішліть скіншот успішного переводу на <a href="https://t.me/mkrooted">t.me/mkrooted</a></li>
+                        </ol>
+                    </li>
+                </ul>
+            </div>
+            <hr>
         </div>
-        <div id="cart">
-            Ваш кошик порожній
+        </form>
+        <div class="container">
+            <h3>Ваш кошик:</h3>
+            <div id="cart">
+                Ваш кошик порожній
+            </div>
         </div>
     </div>
     <hr>
@@ -110,7 +128,7 @@
             <div class="col-md-4 d-flex align-items-center asocial">
                 <span class="text-muted">© 2021, <a href="https://github.com/mkrooted256">@mkrooted256</a> feat. <a
                         href="https://www.instagram.com/duke_mort_pixel">Duke Mort</a> </span>
-            </div>
+            </div> 
 
             <a class="asocial" href="https://t.me/duke_mort_pixel" target="_blank" rel="noopener noreferrer me"
                 title="Telegram">
@@ -140,6 +158,9 @@
                 </svg>
             </a>
         </footer>
+    </div>
+    <div class="container">
+        <a href="/tos.html" style="font-size: large;">Умови користування сайтом та юридична інформація</a>
     </div>
     <div class="container">
         <p class="ihatefrontend">Якщо ти знаєш як покращити сайт та хочеш цим зайнятися - пиши <a href="https://t.me/mkrooted">t.me/mkrooted</a>. <br> Врятуйте C++ розробника від вебдизайну!</p>
