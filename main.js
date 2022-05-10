@@ -62,8 +62,9 @@ function place_order(order_ref, order) {
     ActiveOrdersDB.set(order_ref, order)
     reserve_tiles(order.cart, order.owner)
 }
-function confirm_order(order_ref, order) {
+function confirm_order(order_ref, order, status) {
     ActiveOrdersDB.delete(order_ref);
+    order.status = status;
     PastOrdersDB.set(order_ref, order);
     chown_tiles(order.cart, order.owner);
 }
@@ -328,7 +329,7 @@ app.post('/wfp', function(req,res) {
     }
 
     console.log("order confirmed!");
-    confirm_order(wfp_data.orderReference, order);
+    confirm_order(wfp_data.orderReference, order, wfp_data);
     res.json(make_wfp_response(wfp_data.orderReference));
 });
 
