@@ -260,7 +260,7 @@ app.post('/wfp', function(req,res) {
 
     let wfp_data = req.body
 
-    if (!wfp_data.signature) {
+    if (!wfp_data.merchantSignature) {
         console.error("No signature. Dismissing.");
         return;
     }
