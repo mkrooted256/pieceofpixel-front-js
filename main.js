@@ -146,11 +146,11 @@ function generate_wfp_result_signature(data) {
 // ROUTES
 //
 
-app.get('/', function(req, res) {
+app.all('/', function(req, res) {
     res.render('index');
 })
 
-app.get('/image', function(req, res){
+app.all('/image', function(req, res){
 
     let rows = TilesDB.get('rows'); 
     let cols = TilesDB.get('cols');
@@ -178,7 +178,7 @@ app.get('/image', function(req, res){
 });
 
 
-app.get('/checkout', async function(req, res) {
+app.all('/checkout', async function(req, res) {
     console.log('checkout: ', req.body);
 
     let order_cart;
@@ -241,18 +241,18 @@ app.get('/checkout', async function(req, res) {
     }
 });
 
-app.get('/thankyou', function(req,res) {
+app.all('/thankyou', function(req,res) {
     console.log("payment successful: ", req.body);
     res.render('thankyou');
 })
-app.get('/paymentfailed', function(req,res) {
+app.all('/paymentfailed', function(req,res) {
     console.log("payment failed: ", req.body);
     res.render('paymentfailed');
 })
 
 // PAYMENT RESULT
 
-app.all('/wfp', function(req,res) {
+app.post('/wfp', function(req,res) {
     console.log("WFP: ", req.body);
     res.sendStatus(200);
 
