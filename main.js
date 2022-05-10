@@ -136,7 +136,7 @@ function generate_wfp_result_signature(data) {
     hmac.update(data.authCode + ';');
     hmac.update(data.cardPan + ';');
     hmac.update(data.transactionStatus + ';');
-    hmac.update(data.reasonCode );
+    hmac.update(data.reasonCode + '');
     
     let sign = hmac.digest().toHex();
 
@@ -259,6 +259,12 @@ app.post('/wfp', function(req,res) {
     res.sendStatus(200);
 
     let wfp_data = req.body
+
+    if (!wfp_data.signature) {
+        console.error("No signature. Dismissing.");
+        return;
+    }
+
     let signature = generate_wfp_result_signature(wfp_data);
     if (signature != wfp_data.merchantSignature) {
         console.error("Invalid signature. Dismissing.");
