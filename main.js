@@ -91,6 +91,8 @@ const app = express();
 app.use(morgan('combined'));
 app.use(express.static('static'));
 
+app.use(express.json());
+
 app.engine('m', mustacheExpress());
 app.set('view engine', 'm');
 
@@ -260,7 +262,6 @@ app.post('/wfp', function(req,res) {
     let signature = generate_wfp_result_signature(wfp_data);
     if (signature != wfp_data.merchantSignature) {
         console.error("Invalid signature. Dismissing.");
-        res.sendStatus(200);
         return;
     }
 
