@@ -285,6 +285,7 @@ app.post('/wfp', function(req,res) {
 
     let wfp_data = req.body
 
+    console.log("> sign: ", wfp_data.merchantSignature);
     if (!wfp_data.merchantSignature) {
         console.error("No signature. Dismissing.");
         res.sendStatus(400);
