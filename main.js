@@ -287,8 +287,14 @@ app.post('/wfp', function(req,res) {
         res.sendStatus(400);
 	    return;
     }
-    let wfp_data = keys[0];
-    console.log("WFP: ", wfp_data);
+    try {
+        let wfp_data = JSON.parse(keys[0]);
+        console.log("WFP: ", wfp_data);
+    } catch (e) {
+        console.log("Failed to parse wfp_data");
+        res.sendStatus(400);
+	    return;
+    }
 
     console.log("> sign: ", wfp_data.merchantSignature);
    
