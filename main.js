@@ -79,6 +79,7 @@ const DOMAIN = process.env.DOMAIN || "pieceofpixel.store";
 const FONDY_TOKEN = process.env.FONDY_TOKEN;
 const WFP_TOKEN = process.env.WFP_TOKEN;
 const WFP_MERCHANT = process.env.WFP_MERCHANT;
+const SKIP_WFP_SIGN_CHECK = process.env.SKIP_WFP_SIGN_CHECK || false;
 
 if (!WFP_TOKEN) throw Error("No WFP_TOKEN!");
 if (!WFP_MERCHANT) throw Error("No WFP_MERCHANT!");
@@ -281,22 +282,29 @@ function make_wfp_response(order_ref, status='accept', time=Date.now()) {
 }
 
 app.post('/wfp', function(req,res) {
-    console.log("WFP: ", req.body);
-
-    let wfp_data = req.body
+    let keys=Object.keys(req.body);
+    if (!keys) {
+        res.sendStatus(400);
+	    return;
+    }
+    let wfp_data = keys[0];
+    console.log("WFP: ", wfp_data);
 
     console.log("> sign: ", wfp_data.merchantSignature);
-    if (!wfp_data.merchantSignature) {
-        console.error("No signature. Dismissing.");
-        res.sendStatus(400);
-        return;
-    }
-
-    let signature = check_signature_from_wfp(wfp_data);
-    if (signature != wfp_data.merchantSignature) {
-        console.error("Invalid signature. Dismissing.");
-        res.sendStatus(400);
-        return;
+   
+    if (!SKIP_WFP_SIGN_CHECK) {
+        if (!wfp_data.merchantSignature) {
+            console.error("No signature. Dismissing.");
+            res.sendStatus(400);
+            return;
+        }
+        
+        let signature = check_signature_from_wfp(wfp_data);
+        if (signature != wfp_data.merchantSignature) {
+            console.error("Invalid signature. Dismissing.");
+            res.sendStatus(400);
+            return;
+        }
     }
 
     let order = ActiveOrdersDB.get(wfp_data.orderReference);
