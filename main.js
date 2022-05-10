@@ -281,10 +281,13 @@ function make_wfp_response(order_ref, status='accept', time=Date.now()) {
 }
 
 app.post('/wfp', function(req,res) {
-    console.log("WFP: ", req.body);
-
-    let wfp_data = req.body
-
+    if (!Object.keys(req.body)) {
+        res.sendStatus(400);
+	return;
+    }
+    let wfp_data = Object.keys(req.body)[0];
+    console.log("WFP: ", wfp_data);
+   
     if (!wfp_data.merchantSignature) {
         console.error("No signature. Dismissing.");
         res.sendStatus(400);
